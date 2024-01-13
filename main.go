@@ -2,8 +2,10 @@ package main
 
 import (
 	config "url-shortener/cmd"
-
-	"github.com/gin-gonic/gin"
+	"url-shortener/domain/shortener/handler"
+	"url-shortener/domain/shortener/repository"
+	"url-shortener/domain/shortener/usecase"
+	"url-shortener/route"
 )
 
 func main() {
@@ -13,19 +15,17 @@ func main() {
 		panic(err)
 	}
 
-	_, err = config.InitRedis()
+	redis, err := config.InitRedis()
 	if err != nil {
 		panic(err)
 	}
 
-	router := gin.Default()
+	repo := repository.NewRepo(redis)
+	service := usecase.NewService(repo)
+	h := handler.NewHandler(service)
+	r := route.NewRoute(*h)
 
-	// repo := shortener.NewRedisRepository(rdb)
-	// service := shortener.NewShortURLService(repo)
+	apps := route.Routes(r)
 
-	// usecase := shortener.NewShortURLUsecase(repo, service)
-
-	// shortener.NewHandler(router, usecase)
-
-	router.Run("localhost:8080")
+	apps.Run(config.Cfg.App.Host + config.Cfg.App.Port)
 }
