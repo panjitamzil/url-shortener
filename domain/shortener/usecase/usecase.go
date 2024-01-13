@@ -20,15 +20,30 @@ func NewService(repository shortener.RepositoryInterface) shortener.UsecaseInter
 }
 
 func (s *Service) Shorten(payload model.Payload) (*model.ShortURL, error) {
-	shortURL := lib.GenerateShortKey()
-	key := fmt.Sprintf("shortener:%s", shortURL)
+	total, err := s.repository.GetKeys(payload.URL)
+	if err != nil {
+		return nil, errors.New(err.Error())
+	}
 
+	if total > 0 {
+		return nil, errors.New("THE URL HAS BEEN SHORTENED")
+	}
+
+	shortURL := lib.GenerateShortKey()
 	valid := lib.ValidateURL(payload.URL)
 	if !valid {
 		return nil, errors.New("INVALID URL")
 	}
 
-	err := s.repository.SetKey(key, payload.URL)
+	key := fmt.Sprintf("shortener:%s", shortURL)
+
+	err = s.repository.SetKey(key, payload.URL)
+	if err != nil {
+		return nil, errors.New(err.Error())
+	}
+
+	updatedKey := fmt.Sprintf("shortener:%s:%s", shortURL, payload.URL)
+	err = s.repository.SetKey(updatedKey, "1")
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
@@ -44,7 +59,7 @@ func (s *Service) Shorten(payload model.Payload) (*model.ShortURL, error) {
 func (s *Service) Redirect(shortURL string) (*string, error) {
 	key := fmt.Sprintf("shortener:%s", shortURL)
 
-	result, err := s.repository.Exist(key)
+	result, err := s.repository.GetKeys(key)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}

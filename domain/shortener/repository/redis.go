@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"reflect"
 	"time"
 )
 
@@ -31,4 +33,17 @@ func (r *Repo) GetKey(key string) (string, error) {
 	}
 
 	return result, nil
+}
+
+func (r *Repo) GetKeys(url string) (int, error) {
+	keyword := fmt.Sprintf("*%s*", url)
+
+	result, err := r.redis.Do(context.Background(), "KEYS", keyword).Result()
+	if err != nil {
+		return -1, err
+	}
+
+	v := reflect.ValueOf(result)
+
+	return v.Len(), nil
 }
