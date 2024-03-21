@@ -63,3 +63,9 @@ func (h *Handler) Resolve(c *gin.Context) {
 
 	c.Redirect(http.StatusFound, *url)
 }
+
+func (h *Handler) Home(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"data": "Hello world",
+	})
+}

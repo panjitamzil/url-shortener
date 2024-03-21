@@ -20,6 +20,7 @@ func Routes(h *Route) *gin.Engine {
 	r := gin.Default()
 	r.POST("/shorten", h.shortenerHandler.Shorten)
 	r.GET("/resolve/:url", h.shortenerHandler.Resolve)
+	r.GET("/", h.shortenerHandler.Home)
 
 	return r
 }
